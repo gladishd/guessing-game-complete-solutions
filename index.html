@@ -9,12 +9,45 @@
   </head>
 
   <body>
+    <div id="app">
 
-
-
-
-
-    <!-- <script src='js/guessing-game.js'></script> -->
+      <div class="center">
+        <h1>Play the Guessing Game!</h1>
+        <h3 id="subtitle">Guess a number between 1-100!</h3>
+      </div>
+  
+      <div id='guess-feedback' class='center'>
+        <h4></h4>
+      </div>
+  
+      <div id = "display">
+        <div id="input-parent">
+          <input class="center" id="player-input" maxlength='3' autofocus=autofocus></input>
+          <button id="submit">Go!</button>
+        </div>
+  
+        <div class="center">
+          <ul id="guess-list">
+            <li class="guess">-</li>
+            <li class="guess">-</li>
+            <li class="guess">-</li>
+            <li class="guess">-</li>
+            <li class="guess">-</li>
+          </ul>
+        </div>
+  
+      </div>
+    </div>
+  
+  
+  
+    <div id="footer" class="center">
+      <div>
+        <h4>Project by Dean Gladish</h4>
+      </div>
+    </div>
+    </div>
+    <script src='js/guessing-game.js'></script>
     <!-- uncomment the script tag above when you are ready to add JavaScript to your document -->
   </body>
 
