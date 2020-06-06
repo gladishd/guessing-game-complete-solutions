@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /* eslint-disable no-fallthrough */
 /* eslint-disable default-case */
 /* eslint-disable no-throw-literal */
@@ -18,6 +19,17 @@ class Game {
         this.playersGuess = null;
         this.pastGuesses = [];
         this.winningNumber = generateWinningNumber();
+        this.nHintCalls = 0;
+        this.hint = [];
+    }
+    resetGame() {
+        this.winningNumber = generateWinningNumber();
+        this.pastGuesses = [];
+        this.playersGuess = null;
+        this.nHintCalls = 0;
+        this.hint = [];
+        document.querySelector('#guess-feedback > h4').innerHTML = '';
+        for (let i = 1; i <= 5; i++) { document.querySelector(`#guess-list li:nth-child(${i})`).innerHTML = '-'; }
     }
     difference() { return Math.abs(this.playersGuess - this.winningNumber); }
     isLower() { return (this.playersGuess < this.winningNumber); }
@@ -28,25 +40,28 @@ class Game {
     }
     checkGuess() {
         let feedbackText = '';
-        if (this.playersGuess === this.winningNumber) { feedbackText = 'You Win!'; }
         if (this.pastGuesses.includes(this.playersGuess)) { feedbackText = 'You have already guessed that number.'; }
         this.pastGuesses.push(this.playersGuess);
         if (this.pastGuesses.length === 5) { feedbackText = 'You Lose.'; }
         let diff = this.difference();
-        switch (true) {
-            case (diff < 10): feedbackText = `You're burning up!`;
-            case (diff < 25): feedbackText = `You're lukewarm.`;
-            case (diff < 50): feedbackText = `You're a bit chilly.`;
-            case (diff < 100): feedbackText = `You're ice cold!`;
-        }
+        if (diff < 100) { feedbackText = `You're ice cold!`; }
+        if (diff < 50) { feedbackText = `You're a bit chilly.`; }
+        if (diff < 25) { feedbackText = `You're lukewarm.`; }
+        if (diff < 10) { feedbackText = `You're burning up!`; }
         // these lines will make the test specs fail
+        if (this.playersGuess === this.winningNumber) { feedbackText = 'You Win!'; }
         document.querySelector('#guess-feedback > h4').innerHTML = feedbackText;
         document.querySelector(`#guess-list li:nth-child(${this.pastGuesses.length})`).innerHTML = this.playersGuess
         return feedbackText;
     }
     provideHint(hintArray = []) {
-        hintArray.push(this.winningNumber, generateWinningNumber(), generateWinningNumber());
-        return shuffle(hintArray);
+        this.nHintCalls++;
+        if (this.nHintCalls <= 1) {
+            hintArray.push(generateWinningNumber(), this.winningNumber, generateWinningNumber());
+            this.hint = shuffle(hintArray);
+        }
+        document.querySelector('#guess-feedback > h4').innerHTML = this.hint;
+        return this.hint;
     }
 }
 function generateWinningNumber() { return Math.floor(1 + (Math.random() * 100)); }
@@ -63,32 +78,46 @@ function shuffle(arr) { // Fisher-Yates shuffle
 
 
 function playGame() {
-    const game = newGame();
+    let game = newGame();
     
     // We are grabbing the submit button from our html using getElementById
-    const button = document.getElementById('submit'); 
+    const submitButton = document.getElementById('submit'); 
     // instead of querySelector, so we can refer to exactly one button only.  
   
-    // We are listening for when the use clicks on our button.
+    // We are listening for when the user clicks on our button.
     // When they click, we will check in the input field to see if they have guessed a number. Then we will run the function `checkGuess`, and give it the player's guess, the winning number, and the empty array of guesses!
-    button.addEventListener('click', function() {
+    submitButton.addEventListener('click', function() {
       const playersGuess = +document.querySelector('input').value;
       document.querySelector('input').value = '';
   
       game.playersGuessSubmission(playersGuess);
     });
 
-    // We're listening for when the user presses Enter in the input field, and if so we submit the guess if it exists.  
-    const enter = document.querySelector('input');
-    enter.addEventListener('keypress', function(e) {
+    // We're listening for when the user presses Enter in the input field, and if so we submit the guess if it exists.
+    // If it doesn't exist then we reset.   
+    const enterPress = document.querySelector('input');
+    enterPress.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            const playersGuess = +document.querySelector('input').value;
-            document.querySelector('input').value = '';
-            game.playersGuessSubmission(playersGuess);
-        }
+            const playersGuess = +document.querySelector('input').value; // + converts the string to an int
+            // that means 'string' -> NaN, '1' -> 1, and '' -> 0.  
+            document.querySelector('input').value = ''; // clear the input field
+            if (playersGuess === 0) { game.resetGame(); }
+            if (!isNaN(playersGuess)) { game.playersGuessSubmission(playersGuess); }
+            document.querySelector('input').focus();
+        } 
     });
 
-    const reset = document.querySelector()
+    const resetButton = document.getElementById('reset');
+    resetButton.addEventListener('click', function() {
+        game.resetGame();
+        document.querySelector('input').focus(); // keeps focus on the input field no matter what the user does
+    })
+
+    const hintButton = document.getElementById('hint');
+    hintButton.addEventListener('click', function() {
+        game.provideHint();
+        document.querySelector('input').focus();
+    })
   }
   // start up the game!
   playGame(); // note: running this function will cause the test specs to fail
